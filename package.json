@@ -20,12 +20,14 @@
       ]
     },
     "win": {
-      "target": [{
-        "target": "nsis",
-        "arch": [
-          "x64"
-        ]
-      }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "artifactName": "${productName}_${version}.${ext}"
     },
     "nsis": {
@@ -47,6 +49,7 @@
     "app:preview": "npm run vite:build && tsc && electron ."
   },
   "dependencies": {
+    "element-plus": "^2.5.4",
     "pinia": "^2.1.7",
     "vue": "^3.3.11"
   },
