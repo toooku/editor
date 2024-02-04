@@ -84,9 +84,9 @@ const filterEntries = () => {
 
 const writeEntriesToFile = () => {
     const now = new Date();
-    const japanTimeOffset = 9 * 60;
-    now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + japanTimeOffset);
-    const today = now.toISOString().split('T')[0];
+    const japanTimeOffset = 9 * 60 * 60 * 1000; // 9時間
+    const japanTime = new Date(now.getTime() + japanTimeOffset - (now.getTimezoneOffset() * 60000));
+    const today = japanTime.toISOString().split('T')[0];
     // その日のエントリーのみを選択
     const todayEntries = displayedEntries.value;
     const fileContent = todayEntries.map(entry => `${entry.text} - ${entry.timestamp}`).join('\n\n');
