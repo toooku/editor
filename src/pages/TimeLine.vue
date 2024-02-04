@@ -16,7 +16,7 @@
         </el-timeline-item>
     </el-timeline>
 
-    <el-button type="primary" @click="writeEntriesToFile">Export Day TimeLine</el-button>
+    <el-button type="primary" size="small" @click="writeEntriesToFile">Export Day TimeLine</el-button>
 </template>
 
 <script setup>
