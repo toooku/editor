@@ -41,12 +41,25 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.on('write-to-file', (event, { date, content }) => {
-  const filePath = path.join(app.getPath('documents'), 'TimeLine', `${date}.txt`)
+  const documentsPath = app.getPath('documents');
+  const timeLinePath = path.join(documentsPath, 'TimeLine');
+  const filePath = path.join(timeLinePath, `${date}.txt`);
+
+  if (!fs.existsSync(timeLinePath)) {
+    try {
+      fs.mkdirSync(timeLinePath, { recursive: true });
+      console.log(`Directory created at ${timeLinePath}`);
+    } catch (err) {
+      console.error('Failed to create directory', err);
+      return;
+    }
+  }
+
   fs.writeFile(filePath, content, (err) => {
     if (err) {
-      console.error('Failed to write file', err)
+      console.error('Failed to write file', err);
     } else {
-      console.log(`Entries for ${date} were saved to ${filePath}`)
+      console.log(`Entries for ${date} were saved to ${filePath}`);
     }
-  })
-})
+  });
+});
