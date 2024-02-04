@@ -15,10 +15,13 @@
             <div style="white-space: pre-wrap;" v-text="activity.text" />
         </el-timeline-item>
     </el-timeline>
+
+    <el-button type="primary" @click="writeEntriesToFile">Export Day TimeLine</el-button>
 </template>
 
 <script setup>
 import { reactive, onMounted, ref } from "vue";
+const { ipcRenderer } = window.require('electron')
 
 const form = reactive({
     post: '',
@@ -76,6 +79,17 @@ const filterEntries = () => {
             const dateB = new Date(b.timestamp).getTime();
             return dateB - dateA; // 降順ソート
         });
+};
+
+const writeEntriesToFile = () => {
+    const now = new Date();
+    const japanTimeOffset = 9 * 60;
+    now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + japanTimeOffset);
+    const today = now.toISOString().split('T')[0];
+    // その日のエントリーのみを選択
+    const todayEntries = displayedEntries.value;
+    const fileContent = todayEntries.map(entry => `${entry.text} - ${entry.timestamp}`).join('\n\n');
+    ipcRenderer.send('write-to-file', { date: today, content: fileContent });
 };
 
 onMounted(() => {

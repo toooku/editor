@@ -1,53 +1,52 @@
 // src/electron/main/main.ts
-import { join } from 'path';
-import {
-    app,
-    BrowserWindow
-} from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron'
+import fs from 'fs'
+import path = require("path")
 
-const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
+
+const isDev = process.env.npm_lifecycle_event === 'app:dev'
 
 function createWindow() {
-    // Create the browser window.
-    const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            preload: join(__dirname, '../preload/preload.js'),
-        },
-    });
-
-    // and load the index.html of the app.
-    if (isDev) {
-        mainWindow.loadURL('http://localhost:5173/');
-        mainWindow.webContents.openDevTools();// Open the DevTools.
-    } else {
-        mainWindow.loadFile(join(__dirname, '../../index.html'));
+  // Create the browser window.
+  const mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      preload: path.join(__dirname, '../preload/preload.js')
     }
-    // mainWindow.loadURL( //this doesn't work on macOS in build and preview mode
-    //     isDev ?
-    //     'http://localhost:3000' :
-    //     join(__dirname, '../../index.html')
-    // );
+  })
+
+  // and load the index.html of the app.
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173/')
+    mainWindow.webContents.openDevTools() // Open the DevTools.
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../../index.html'))
+  }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-    createWindow()
-    app.on('activate', function () {
-        // On macOS it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
-    })
-});
+  createWindow()
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+ipcMain.on('write-to-file', (event, { date, content }) => {
+  const filePath = path.join(app.getPath('documents'), 'TimeLine', `${date}.txt`)
+  fs.writeFile(filePath, content, (err) => {
+    if (err) {
+      console.error('Failed to write file', err)
+    } else {
+      console.log(`Entries for ${date} were saved to ${filePath}`)
     }
-});
+  })
+})
