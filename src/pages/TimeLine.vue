@@ -2,7 +2,7 @@
     <h1>Time Line({{ currentDate }})</h1>
     <el-form :model="form" label-width="120px" label-position="top">
         <el-form-item>
-            <el-input v-model="form.post" type="textarea" />
+            <el-input v-model="form.post" type="textarea" v-key-actions />
         </el-form-item>
         <el-form-item>
             <el-button type="primary" @click="onSubmit">Send</el-button>
@@ -90,6 +90,67 @@ const writeEntriesToFile = () => {
     const todayEntries = displayedEntries.value;
     const fileContent = todayEntries.map(entry => `${entry.text} - ${entry.timestamp}`).join('\n\n');
     ipcRenderer.send('write-to-file', { date: today, content: fileContent });
+};
+
+const handleKeydown = (event) => {
+    const textarea = event.target;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    if (event.key === 'Tab') {
+        event.preventDefault();
+        const tabCharacter = '\t';
+
+        // 選択されたテキストを取得
+        const selectedText = textarea.value.substring(start, end);
+
+        // 選択テキストに複数行が含まれているかチェック
+        if (selectedText.includes('\n')) {
+            // 選択された各行にタブを追加または削除
+            const lines = selectedText.split('\n');
+
+            // シフトキーが押されている場合はインデントを解除
+            if (event.shiftKey) {
+                const detabbedLines = lines.map(line =>
+                    line.startsWith(tabCharacter) ? line.substring(1) : line
+                ).join('\n');
+                textarea.value = textarea.value.substring(0, start) + detabbedLines + textarea.value.substring(end);
+                textarea.selectionStart = start;
+                textarea.selectionEnd = start + detabbedLines.length;
+            } else {
+                // タブを各行の先頭に追加
+                const tabbedLines = lines.map(line => tabCharacter + line).join('\n');
+                textarea.value = textarea.value.substring(0, start) + tabbedLines + textarea.value.substring(end);
+                textarea.selectionStart = start;
+                textarea.selectionEnd = start + tabbedLines.length;
+            }
+        } else {
+            // 選択範囲が1行の場合は通常のタブ処理
+            textarea.value = textarea.value.substring(0, start) + tabCharacter + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + tabCharacter.length;
+        }
+    }
+
+    // Enterキーの処理
+    else if (event.key === 'Enter') {
+        const line = textarea.value.substring(0, start).split("\n").pop();
+        // 直前の行がハイフンで始まっている場合
+        if (line.trim().startsWith('-')) {
+            event.preventDefault();
+            const newLineAndHyphen = "\n- ";
+            textarea.value = textarea.value.substring(0, start) + newLineAndHyphen + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + newLineAndHyphen.length;
+        }
+    }
+};
+
+const vKeyActions = {
+    mounted(el) {
+        el.addEventListener('keydown', handleKeydown);
+    },
+    beforeUnmount(el) {
+        el.removeEventListener('keydown', handleKeydown);
+    },
 };
 
 onMounted(() => {
