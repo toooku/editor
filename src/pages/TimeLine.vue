@@ -2,7 +2,7 @@
     <h1>Time Line({{ currentDate }})</h1>
     <el-form :model="form" label-width="120px" label-position="top">
         <el-form-item>
-            <el-input v-model="form.post" type="textarea" v-key-actions />
+            <el-input v-model="form.post" type="textarea" v-key-actions ref="textarea" @input="resizeTextarea" />
         </el-form-item>
         <el-form-item>
             <el-button type="primary" @click="onSubmit">Send</el-button>
@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, ref } from "vue";
+import { reactive, onMounted, ref, onUnmounted, nextTick } from "vue";
 const { ipcRenderer } = window.require('electron')
 
 const form = reactive({
@@ -29,6 +29,7 @@ const form = reactive({
 const currentDate = ref(new Date().toLocaleDateString({ timeZone: "Asia/Tokyo" }));
 const entries = ref([]);
 const displayedEntries = ref([]);
+const textarea = ref(null);
 
 const onSubmit = () => {
     if (form.post.trim().length === 0) {
@@ -140,6 +141,7 @@ const handleKeydown = (event) => {
             const newLineAndHyphen = "\n- ";
             textarea.value = textarea.value.substring(0, start) + newLineAndHyphen + textarea.value.substring(end);
             textarea.selectionStart = textarea.selectionEnd = start + newLineAndHyphen.length;
+            resizeTextarea();
         }
     }
 };
@@ -153,7 +155,20 @@ const vKeyActions = {
     },
 };
 
+const resizeTextarea = () => {
+    nextTick(() => {
+        if (textarea.value) {
+            const el = textarea.value.$el.querySelector('.el-textarea__inner');
+            if (el) {
+                el.style.height = 'auto';
+                el.style.height = `${el.scrollHeight}px`;
+            }
+        }
+    });
+};
+
 onMounted(() => {
+    resizeTextarea(); // コンポーネントがマウントされた後にサイズ調整を行う
     loadEntries();
 });
 
