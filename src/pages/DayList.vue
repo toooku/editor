@@ -7,7 +7,7 @@
             </template>
             <ul>
                 <li v-for="(entry, entryIndex) in entries" :key="entryIndex">
-                    {{ entry.text }} - {{ entry.timestamp }}
+                    <div style="white-space: pre-wrap;" v-text="entry.text + '\n' + '- ' + entry.timestamp"></div>
                 </li>
             </ul>
         </el-collapse-item>

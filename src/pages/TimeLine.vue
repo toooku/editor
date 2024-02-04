@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, ref, onUnmounted, nextTick } from "vue";
+import { reactive, onMounted, ref, nextTick } from "vue";
 const { ipcRenderer } = window.require('electron')
 
 const form = reactive({
